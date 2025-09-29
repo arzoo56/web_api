@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GitHub Profile & Repos</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      font-family: "Poppins", sans-serif;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      background-size: 400% 400%;
+      animation: gradientBG 12s ease infinite;
+    }
+
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .container {
+      width: 460px;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(12px);
+      text-align: center;
+      color: #fff;
+      transition: transform 0.3s ease;
+    }
+
+    .container:hover { transform: translateY(-5px); }
+
+    h2 {
+      margin-bottom: 20px;
+      font-size: 1.8rem;
+      color: #f1c40f;
+      text-shadow: 0 2px 6px rgba(0,0,0,0.5);
+    }
+
+    form {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    input {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      outline: none;
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+    }
+
+    input::placeholder { color: rgba(255,255,255,0.6); }
+
+    button {
+      padding: 12px 18px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #f39c12, #e67e22);
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: linear-gradient(135deg, #f1c40f, #e67e22);
+      transform: scale(1.05);
+    }
+
+    /* Profile card */
+    .profile {
+      text-align: center;
+      margin-bottom: 20px;
+      padding: 15px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .profile img {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      border: 3px solid #f1c40f;
+      margin-bottom: 10px;
+    }
+
+    .profile h3 {
+      margin: 5px 0;
+      font-size: 1.2rem;
+      color: #ffdd59;
+    }
+
+    .profile a {
+      color: #1abc9c;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .profile a:hover { text-decoration: underline; }
+
+    .stats {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 10px;
+      font-size: 0.9rem;
+    }
+
+    .stats span {
+      background: rgba(0,0,0,0.3);
+      padding: 6px 12px;
+      border-radius: 8px;
+    }
+
+    /* Repo list */
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      text-align: left;
+      max-height: 250px;
+      overflow-y: auto;
+    }
+
+    li {
+      margin: 10px 0;
+      padding: 12px 15px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 10px;
+      transition: background 0.3s, transform 0.2s;
+    }
+
+    li:hover {
+      background: rgba(255, 255, 255, 0.25);
+      transform: translateX(5px);
+    }
+
+    a.repo-link {
+      color: #ffdd59;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    a.repo-link:hover {
+      color: #f1c40f;
+      text-decoration: underline;
+    }
+
+    ul::-webkit-scrollbar { width: 8px; }
+    ul::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>🔍 GitHub Profile & Repos</h2>
+    <form id="repoForm">
+      <input type="text" id="username" placeholder="Github username..." required />
+      <button type="submit">Search</button>
+    </form>
+
+    <div id="profile"></div>
+    <ul id="repoList"></ul>
+  </div>
+
+  <script>
+    const form = document.getElementById("repoForm");
+    const usernameInput = document.getElementById("username");
+    const profileDiv = document.getElementById("profile");
+    const repoList = document.getElementById("repoList");
+
+    form.addEventListener("submit", function(e) {
+      e.preventDefault();
+      const username = usernameInput.value.trim();
+      if (username === "") return;
+
+      // Fetch user profile
+      fetch(`https://api.github.com/users/${username}`)
+        .then(res => res.json())
+        .then(user => {
+          if (user.message === "Not Found") {
+            profileDiv.innerHTML = "<p>User not found!</p>";
+            repoList.innerHTML = "";
+            return;
+          }
+
+          profileDiv.innerHTML = `
+            <div class="profile">
+              <img src="${user.avatar_url}" alt="Avatar" />
+              <h3>${user.login}</h3>
+              <a href="${user.html_url}" target="_blank">View Profile</a>
+              <div class="stats">
+                <span>Followers: ${user.followers}</span>
+                <span>Following: ${user.following}</span>
+                <span>Repos: ${user.public_repos}</span>
+              </div>
+            </div>
+          `;
+        });
+
+      // Fetch repos
+      fetch(`https://api.github.com/users/${username}/repos`)
+        .then(res => res.json())
+        .then(data => {
+          repoList.innerHTML = "";
+          if (data.message === "Not Found") {
+            repoList.innerHTML = "<li>User not found!</li>";
+            return;
+          }
+          if (data.length === 0) {
+            repoList.innerHTML = "<li>No repos found!</li>";
+            return;
+          }
+
+          data.forEach(repo => {
+            const li = document.createElement("li");
+            li.innerHTML = `
+              <a class="repo-link" href="${repo.html_url}" target="_blank">${repo.name}</a>
+            `;
+            repoList.appendChild(li);
+          });
+        })
+        .catch(err => {
+          console.error(err);
+          repoList.innerHTML = "<li>Something went wrong!</li>";
+        });
+    });
+  </script>
+</body>
+</html>
